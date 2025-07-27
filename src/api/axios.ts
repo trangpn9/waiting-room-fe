@@ -20,7 +20,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const res = await axios.post(`${API_BASE_URL}/refresh`, {}, { withCredentials: true });
+        const res = await axios.post(`${API_BASE_URL}/v1/auth/refresh`, {}, { withCredentials: true });
         const newToken = res.data.token;
         useAuthStore.getState().login(newToken);
         originalRequest.headers["Authorization"] = `Bearer ${newToken}`;

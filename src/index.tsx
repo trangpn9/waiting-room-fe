@@ -1,17 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { useAuthStore } from "./store/authStore";
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useAuthStore } from "./store/authStore";
+
+// Init state auth before render
+useAuthStore.getState().init();
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
-useAuthStore.getState().init();
 
 const queryClient = new QueryClient();
 

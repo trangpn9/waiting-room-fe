@@ -7,6 +7,7 @@ type RegisterPayload = {
   name: string;
   email: string;
   password: string;
+  password_confirmation: string;
   role: string;
 };
 
@@ -17,14 +18,14 @@ type LoginPayload = {
 
 export const useLogin = () => {
   return useMutation<AxiosResponse<any>, Error, LoginPayload>({
-    mutationFn: (data) => api.post("/login", data),
-    onSuccess: (res) => useAuthStore.getState().login(res.data.token),
+    mutationFn: (data) => api.post("/v1/auth/login", data),
+    onSuccess: (res) => useAuthStore.getState().login(res.data.access_token),
   });
 };
 
 export const useRegister = () => {
   return useMutation<AxiosResponse<any>, Error, RegisterPayload>({
-    mutationFn: (data) => api.post("/register", data),
+    mutationFn: (data) => api.post("/v1/auth/register", data),
   });
 };
 
