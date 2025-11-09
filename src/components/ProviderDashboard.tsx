@@ -8,7 +8,7 @@ export default function ProviderDashboard() {
   const [sortType, setSortType] = useState<'name' | 'time'>('time');
 
   useEffect(() => {
-    axios.get('/api/patients').then((res) => setPatients(res.data));
+    axios.get('/patient/list').then((res) => setPatients(res.data));
 
     const pusher = createPusherClient();
     const channel = pusher.subscribe('waiting-room');

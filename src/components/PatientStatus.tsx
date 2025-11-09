@@ -25,7 +25,7 @@ export default function PatientStatus() {
   }, [patientId]);
 
   const exitRoom = async () => {
-    await axios.post('/api/patient-exit', { patientId });
+    await axios.post('/patient/exit', { patientId });
     clearPatientId();
   };
 

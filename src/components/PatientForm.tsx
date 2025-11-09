@@ -8,7 +8,7 @@ export default function PatientForm() {
   const setPatientId = usePatientStore((state) => state.setPatientId);
 
   const handleJoin = async () => {
-    const res = await axios.post('/api/patient-join', { name, reason });
+    const res = await axios.post('/patient/join', { name, reason });
     setPatientId(res.data.patient.id);
   };
 
