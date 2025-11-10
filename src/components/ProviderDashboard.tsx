@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { Patient } from '../utils/types';
 import axios from 'axios';
 import { createPusherClient } from '../hooks/usePusher';
+import { useGetPatients } from '../hooks/usePatient';
 
 export default function ProviderDashboard() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [sortType, setSortType] = useState<'name' | 'time'>('time');
+  const listPatientsMutation = useGetPatients();
 
   useEffect(() => {
     axios.get('/patient/list').then((res) => setPatients(res.data));
+    // const res = await listPatientsMutation
 
     const pusher = createPusherClient();
     const channel = pusher.subscribe('waiting-room');

@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { usePatientStore } from '../store/usePatientStore';
+import { useJoinPatient } from '../hooks/usePatient';
 
 export default function PatientForm() {
   const [name, setName] = useState('');
   const [reason, setReason] = useState('');
   const setPatientId = usePatientStore((state) => state.setPatientId);
+  const joinMutation = useJoinPatient();
 
   const handleJoin = async () => {
-    const res = await axios.post('/patient/join', { name, reason });
+    // const res = await axios.post('/patient/join', { name, reason });
+    const res = await joinMutation.mutateAsync({name, reason});
     setPatientId(res.data.patient.id);
+
   };
 
   return (

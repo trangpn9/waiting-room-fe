@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { usePatientStore } from '../store/usePatientStore';
 import { createPusherClient } from '../hooks/usePusher';
-import axios from 'axios';
+import { useExitPatient } from '../hooks/usePatient';
 
 export default function PatientStatus() {
   const patientId = usePatientStore((state) => state.patientId);
   const clearPatientId = usePatientStore((state) => state.clearPatientId);
+  const exitMutation = useExitPatient();
   const [message, setMessage] = useState('Waiting...');
 
   useEffect(() => {
@@ -25,7 +26,10 @@ export default function PatientStatus() {
   }, [patientId]);
 
   const exitRoom = async () => {
-    await axios.post('/patient/exit', { patientId });
+    if (patientId === null) {
+      throw new Error("Missing patientId in localStorage!");
+    }
+    await exitMutation.mutateAsync({patientId})
     clearPatientId();
   };
 
