@@ -12,7 +12,6 @@ export default function PatientForm() {
     // const res = await axios.post('/patient/join', { name, reason });
     const res = await joinMutation.mutateAsync({name, reason});
     setPatientId(res.data.patient.id);
-
   };
 
   return (

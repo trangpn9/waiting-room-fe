@@ -1,37 +1,41 @@
 import { useEffect, useState } from 'react';
 import { Patient } from '../utils/types';
-import axios from 'axios';
 import { createPusherClient } from '../hooks/usePusher';
-import { useGetPatients } from '../hooks/usePatient';
+import { useCallPatient, useGetPatients } from '../hooks/usePatient';
 
 export default function ProviderDashboard() {
+  const { data, isLoading, isError, refetch } = useGetPatients();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [sortType, setSortType] = useState<'name' | 'time'>('time');
-  const listPatientsMutation = useGetPatients();
+  const callPatientMutation = useCallPatient();
 
   useEffect(() => {
-    axios.get('/patient/list').then((res) => setPatients(res.data));
-    // const res = await listPatientsMutation
+    if (data) {
+      setPatients(data);
+    }
+  }, [data]);
 
+  useEffect(() => {
     const pusher = createPusherClient();
-    const channel = pusher.subscribe('waiting-room');
+    const channel = pusher.subscribe("waiting-room");
 
-    channel.bind('patient-joined', (data: Patient) => {
-      setPatients((prev) => [...prev, data]);
+    channel.bind("patient-joined", (patient: Patient) => {
+      setPatients((prev) => [...prev, patient]);
     });
 
-    channel.bind('patient-exit', (data: { id: string }) => {
+    channel.bind("patient-exit", (data: { id: string }) => {
       setPatients((prev) => prev.filter((p) => p.id !== data.id));
     });
 
     return () => {
-      pusher.unsubscribe('waiting-room');
+      pusher.unsubscribe("waiting-room");
       pusher.disconnect();
     };
   }, []);
 
   const callPatient = async (p: Patient) => {
-    await axios.post('/api/call-patient', { patientId: p.id });
+    // await axios.post('/api/call-patient', { patientId: p.id });
+    await callPatientMutation.mutateAsync({ patientId: p.id });
   };
 
   const getWaitTime = (createdAt: number) =>
@@ -40,6 +44,9 @@ export default function ProviderDashboard() {
   const sorted = [...patients].sort((a, b) =>
     sortType === 'name' ? a.name.localeCompare(b.name) : a.createdAt - b.createdAt
   );
+
+  if (isLoading) return <p>Đang tải danh sách bệnh nhân...</p>;
+  if (isError) return <p>Lỗi khi tải danh sách.</p>;
 
   return (
     <div className="p-3">
@@ -50,7 +57,7 @@ export default function ProviderDashboard() {
       <ul className="mt-3">
         {sorted.map((p) => (
           <li key={p.id}>
-            {p.name} - {p.reason} -
+            {p.name} - {p.reason} -{" "}
             <span style={{ color: getWaitTime(p.createdAt) > 2 ? 'red' : 'black' }}>
               {getWaitTime(p.createdAt)} phút
             </span>

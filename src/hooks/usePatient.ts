@@ -7,7 +7,7 @@ type JoinPayload = {
     reason: string;
 };
 
-type ExitPatient = {
+type PatientIdType = {
     patientId: string;
 }
 
@@ -26,7 +26,13 @@ export const useJoinPatient = () => {
 };
 
 export const useExitPatient = () => {
-    return useMutation<AxiosResponse<any>, Error, ExitPatient>({
+    return useMutation<AxiosResponse<any>, Error, PatientIdType>({
         mutationFn: (data) => api.post("v1/patient/exit", data)
+    });
+};
+
+export const useCallPatient = () => {
+    return useMutation<AxiosResponse<any>, Error, PatientIdType>({
+        mutationFn: (data) => api.post("v1/patient/call-patient", data)
     });
 };
