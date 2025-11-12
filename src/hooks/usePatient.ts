@@ -33,6 +33,6 @@ export const useExitPatient = () => {
 
 export const useCallPatient = () => {
     return useMutation<AxiosResponse<any>, Error, PatientIdType>({
-        mutationFn: (data) => api.post("v1/doctor/call-patient", data)
+        mutationFn: (data) => api.post("v1/doctor/call", data)
     });
 };

@@ -21,6 +21,7 @@ export default function ProviderDashboard() {
 
     channel.bind("patient-joined", (patient: Patient) => {
       setPatients((prev) => [...prev, patient]);
+      console.log("Chanel subscribe: ", patients)
     });
 
     channel.bind("patient-exit", (data: { id: string }) => {
@@ -34,15 +35,19 @@ export default function ProviderDashboard() {
   }, []);
 
   const callPatient = async (p: Patient) => {
-    // await axios.post('/api/call-patient', { patientId: p.id });
     await callPatientMutation.mutateAsync({ patientId: p.id });
   };
 
-  const getWaitTime = (createdAt: number) =>
-    Math.floor((Date.now() - createdAt) / 60000);
+  const getWaitTime = (created_at?: string | number): string =>{
+    if (!created_at) return "";
+    const createdTime = new Date(created_at).getTime();
+    const diff = Date.now() - createdTime;
+    const minutes = Math.floor(diff / 60000);
+    return isNaN(minutes) ? "" : `${minutes} phút`;
+  }
 
   const sorted = [...patients].sort((a, b) =>
-    sortType === 'name' ? a.name.localeCompare(b.name) : a.createdAt - b.createdAt
+    sortType === 'name' ? a.name.localeCompare(b.name) : parseInt(a.created_at) - parseInt(b.created_at)
   );
 
   if (isLoading) return <p>Đang tải danh sách bệnh nhân...</p>;
@@ -58,8 +63,8 @@ export default function ProviderDashboard() {
         {sorted.map((p) => (
           <li key={p.id}>
             {p.name} - {p.reason} -{" "}
-            <span style={{ color: getWaitTime(p.createdAt) > 2 ? 'red' : 'black' }}>
-              {getWaitTime(p.createdAt)} phút
+            <span style={{ color: parseInt(getWaitTime(p.created_at)) > 2 ? 'red' : 'black' }}>
+              {getWaitTime(p.created_at)}
             </span>
             <button onClick={() => callPatient(p)} className="btn btn-sm btn-success ms-2">Call</button>
           </li>
