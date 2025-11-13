@@ -13,43 +13,95 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+/** =========================
+ *  REFRESH TOKEN QUEUE SETUP
+ *  ========================= */
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token?: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(token || undefined);
+  });
+  failedQueue = [];
+};
+
+/** =========================
+ *  RESPONSE INTERCEPTOR
+ *  ========================= */
+api.interceptors.request.use(config => {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
-  (res) => res,
-  async (error) => {
+  response => response,
+  async error => {
     const originalRequest = error.config;
 
-    // Nếu lỗi 401 (hết hạn) và chưa retry
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Không có response → không xử lý
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
+    const status = error.response.status;
+    const token = useAuthStore.getState().token;
+
+    // --------------------------
+    // Điều kiện refresh TOKEN
+    // --------------------------
+    if (status === 401 && token && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const oldToken = useAuthStore.getState().token;
+      // Queue nếu token đang được refresh
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (newToken?: string) => {
+              if (newToken) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              }
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
 
-        // Gọi refresh
-        const res = await axios.post(
+      isRefreshing = true;
+
+      try {
+        // Gọi refresh token
+        const refreshRes = await axios.post(
           `${API_BASE_URL}/v1/auth/refresh`,
           {},
           {
-            headers: { Authorization: `Bearer ${oldToken}` },
+            headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
 
-        const newToken = res.data.token;
+        const newToken = refreshRes.data.token;
 
-        // Lưu lại token mới
         useAuthStore.getState().login(newToken);
+        processQueue(null, newToken);
 
-        // Gắn token mới vào request gốc
-        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-
-        // Gửi lại request
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
-      } catch (err) {
-        // Refresh thất bại → logout
+      } catch (refreshError) {
+        processQueue(refreshError, null);
         useAuthStore.getState().logout();
         window.location.href = "/login";
-        return Promise.reject(err);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
