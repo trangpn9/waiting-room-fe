@@ -2,7 +2,7 @@ export interface Patient {
   id: string;
   name: string;
   reason: string;
-  createdAt: number;
+  created_at: string;
   status: 'waiting' | 'called' | 'in-progress';
 }
 

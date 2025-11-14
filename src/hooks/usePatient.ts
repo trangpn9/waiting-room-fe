@@ -14,7 +14,7 @@ type PatientIdType = {
 export const useGetPatients = () => {
     return useQuery({
         queryKey: ["list"],
-        queryFn: () => api.get("v1/patient/list").then(res => res.data),
+        queryFn: () => api.get("v1/doctor/list").then(res => res.data),
     });
 };
 
@@ -33,6 +33,6 @@ export const useExitPatient = () => {
 
 export const useCallPatient = () => {
     return useMutation<AxiosResponse<any>, Error, PatientIdType>({
-        mutationFn: (data) => api.post("v1/patient/call-patient", data)
+        mutationFn: (data) => api.post("v1/doctor/call", data)
     });
 };

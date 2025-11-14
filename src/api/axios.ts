@@ -7,30 +7,97 @@ const api = axios.create({
   withCredentials: true,
 });
 
-api.interceptors.request.use(config => {
+
+/** =========================
+ *  RESPONSE INTERCEPTOR
+ *  ========================= */
+api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+/** =========================
+ *  REFRESH TOKEN QUEUE SETUP
+ *  ========================= */
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token?: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) prom.reject(error);
+    else prom.resolve(token || undefined);
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
-  res => res,
+  response => response,
   async error => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    // Không có response → không xử lý
+    if (!error.response) {
+      return Promise.reject(error);
+    }
+
+    const status = error.response.status;
+    const token = useAuthStore.getState().token;
+
+    // --------------------------
+    // Điều kiện refresh TOKEN
+    // --------------------------
+    if (status === 401 && token && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      // Queue nếu token đang được refresh
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (newToken?: string) => {
+              if (newToken) {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              }
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      isRefreshing = true;
+
       try {
-        const res = await axios.post(`${API_BASE_URL}/v1/auth/refresh`, {}, { withCredentials: true });
-        const newToken = res.data.token;
+        // Gọi refresh token
+        const refreshRes = await axios.post(
+          `${API_BASE_URL}/v1/auth/refresh`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+
+        const newToken = refreshRes.data.access_token;
+
         useAuthStore.getState().login(newToken);
-        originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-        return axios(originalRequest);
-      } catch (err) {
+        processQueue(null, newToken);
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
         useAuthStore.getState().logout();
         window.location.href = "/login";
-        return Promise.reject(err);
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
