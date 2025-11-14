@@ -7,6 +7,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
+
+/** =========================
+ *  RESPONSE INTERCEPTOR
+ *  ========================= */
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -29,17 +33,6 @@ const processQueue = (error: any, token: string | null = null) => {
   });
   failedQueue = [];
 };
-
-/** =========================
- *  RESPONSE INTERCEPTOR
- *  ========================= */
-api.interceptors.request.use(config => {
-  const token = useAuthStore.getState().token;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 api.interceptors.response.use(
   response => response,
@@ -88,7 +81,7 @@ api.interceptors.response.use(
           }
         );
 
-        const newToken = refreshRes.data.token;
+        const newToken = refreshRes.data.access_token;
 
         useAuthStore.getState().login(newToken);
         processQueue(null, newToken);
