@@ -10,7 +10,7 @@ export default function ProviderDashboard() {
   const callPatientMutation = useCallPatient();
 
   useEffect(() => {
-    if (data) {
+    if (data && patients.length === 0) {
       setPatients(data);
     }
   }, [data]);
@@ -19,11 +19,24 @@ export default function ProviderDashboard() {
     const pusher = createPusherClient();
     const channel = pusher.subscribe("waiting-room");
 
-    channel.bind("patient-joined", (patient: Patient) => {
-      setPatients((prev) => [...prev, patient]);
-      console.log("Chanel subscribe: ", patients)
+    console.log("Subscribed to waiting-room channel!");
+
+    // Listen to all events for debug
+    channel.bind_global((eventName: string, data: any) => {
+      console.log("🔥 GLOBAL EVENT RECEIVED:", eventName, data);
     });
 
+    // FIX: Correctly extract patient payload
+    channel.bind("patient-joined", (data: { patient: Patient }) => {
+      const patient = data.patient;
+      setPatients((prev) => {
+        // avoid duplicates
+        if (prev.find((p) => p.id === patient.id)) return prev;
+        return [...prev, patient];
+      });
+    });
+
+    // FIX: Correct exit payload
     channel.bind("patient-exit", (data: { id: string }) => {
       setPatients((prev) => prev.filter((p) => p.id !== data.id));
     });
@@ -38,16 +51,16 @@ export default function ProviderDashboard() {
     await callPatientMutation.mutateAsync({ patientId: p.id });
   };
 
-  const getWaitTime = (created_at?: string | number): string =>{
-    if (!created_at) return "";
+  const getWaitTime = (created_at?: string | number): number =>{
+    if (!created_at) return 0;
     const createdTime = new Date(created_at).getTime();
     const diff = Date.now() - createdTime;
     const minutes = Math.floor(diff / 60000);
-    return isNaN(minutes) ? "" : `${minutes} phút`;
+    return isNaN(minutes) ? 0 : minutes;
   }
 
   const sorted = [...patients].sort((a, b) =>
-    sortType === 'name' ? a.name.localeCompare(b.name) : parseInt(a.created_at) - parseInt(b.created_at)
+    sortType === 'name' ? a.name.localeCompare(b.name) : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
   if (isLoading) return <p>Đang tải danh sách bệnh nhân...</p>;
@@ -63,8 +76,8 @@ export default function ProviderDashboard() {
         {sorted.map((p) => (
           <li key={p.id}>
             {p.name} - {p.reason} -{" "}
-            <span style={{ color: parseInt(getWaitTime(p.created_at)) > 2 ? 'red' : 'black' }}>
-              {getWaitTime(p.created_at)}
+            <span style={{ color: getWaitTime(p.created_at) > 10 ? 'red' : 'brown' }}>
+              {getWaitTime(p.created_at)}<i style={{marginLeft: '0.5rem'}}>phút</i>
             </span>
             <button onClick={() => callPatient(p)} className="btn btn-sm btn-success ms-2">Call</button>
           </li>
