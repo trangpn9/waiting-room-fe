@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Patient } from '../utils/types';
 import { createPusherClient } from '../hooks/usePusher';
 import { useCallPatient, useGetPatients } from '../hooks/usePatient';
+import PatientItem from './PatientItem';
 
 export default function ProviderDashboard() {
   const { data, isLoading, isError, refetch } = useGetPatients();
@@ -59,6 +60,15 @@ export default function ProviderDashboard() {
     return isNaN(minutes) ? 0 : minutes;
   }
 
+  // Force re-render every 30s for realtime wait time updates
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setPatients((prev) => [...prev]); // trigger re-render
+  //   }, 58500);
+
+  //   return () => clearInterval(interval);
+  // }, []);
+
   const sorted = [...patients].sort((a, b) =>
     sortType === 'name' ? a.name.localeCompare(b.name) : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
@@ -74,13 +84,7 @@ export default function ProviderDashboard() {
 
       <ul className="mt-3">
         {sorted.map((p) => (
-          <li key={p.id}>
-            {p.name} - {p.reason} -{" "}
-            <span style={{ color: getWaitTime(p.created_at) > 10 ? 'red' : 'brown' }}>
-              {getWaitTime(p.created_at)}<i style={{marginLeft: '0.5rem'}}>phút</i>
-            </span>
-            <button onClick={() => callPatient(p)} className="btn btn-sm btn-success ms-2">Call</button>
-          </li>
+          <PatientItem key={p.id} patient={p} onCall={callPatient} />
         ))}
       </ul>
     </div>
