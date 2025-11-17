@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Patient } from '../utils/types';
 import { createPusherClient } from '../hooks/usePusher';
-import { useCallPatient, useGetPatients } from '../hooks/usePatient';
+import { useGetPatients } from '../hooks/usePatient';
 import PatientItem from './PatientItem';
 
 export default function ProviderDashboard() {
   const { data, isLoading, isError, refetch } = useGetPatients();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [sortType, setSortType] = useState<'name' | 'time'>('time');
-  const callPatientMutation = useCallPatient();
 
   useEffect(() => {
     if (data && patients.length === 0) {
@@ -20,12 +19,12 @@ export default function ProviderDashboard() {
     const pusher = createPusherClient();
     const channel = pusher.subscribe("waiting-room");
 
-    console.log("Subscribed to waiting-room channel!");
+    // console.log("Subscribed to waiting-room channel!");
 
-    // Listen to all events for debug
-    channel.bind_global((eventName: string, data: any) => {
-      console.log("🔥 GLOBAL EVENT RECEIVED:", eventName, data);
-    });
+    // // Listen to all events for debug
+    // channel.bind_global((eventName: string, data: any) => {
+    //   console.log("🔥 GLOBAL EVENT RECEIVED:", eventName, data);
+    // });
 
     // FIX: Correctly extract patient payload
     channel.bind("patient-joined", (data: { patient: Patient }) => {
@@ -48,27 +47,6 @@ export default function ProviderDashboard() {
     };
   }, []);
 
-  const callPatient = async (p: Patient) => {
-    await callPatientMutation.mutateAsync({ patientId: p.id });
-  };
-
-  const getWaitTime = (created_at?: string | number): number =>{
-    if (!created_at) return 0;
-    const createdTime = new Date(created_at).getTime();
-    const diff = Date.now() - createdTime;
-    const minutes = Math.floor(diff / 60000);
-    return isNaN(minutes) ? 0 : minutes;
-  }
-
-  // Force re-render every 30s for realtime wait time updates
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setPatients((prev) => [...prev]); // trigger re-render
-  //   }, 58500);
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
   const sorted = [...patients].sort((a, b) =>
     sortType === 'name' ? a.name.localeCompare(b.name) : new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
@@ -82,9 +60,9 @@ export default function ProviderDashboard() {
       <button className="btn btn-outline-secondary me-2" onClick={() => setSortType('name')}>Sort by Name</button>
       <button className="btn btn-outline-secondary" onClick={() => setSortType('time')}>Sort by Time</button>
 
-      <ul className="mt-3">
+      <ul className="list-group">
         {sorted.map((p) => (
-          <PatientItem key={p.id} patient={p} onCall={callPatient} />
+          <PatientItem key={p.id} patient={p} />
         ))}
       </ul>
     </div>
