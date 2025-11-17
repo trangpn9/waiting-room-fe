@@ -5,6 +5,5 @@ export const createPusherClient = () => {
   return new Pusher(PUSHER_KEY, {
     cluster: PUSHER_CLUSTER, // phải đúng với .env backend
     forceTLS: true, // đảm bảo https/wss
-    enabledTransports: ['ws', 'wss'], // ép WebSocket
   });
 };
