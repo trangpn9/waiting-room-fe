@@ -2,13 +2,18 @@ import Pusher from 'pusher-js';
 import { PUSHER_CLUSTER, PUSHER_KEY, BASE_URL } from "../config/baseConfigs";
 import { useAuthStore } from '../store/authStore';
 
+let pusherInstance: Pusher | null = null;
+
 export const createPusherClient = () => {
+  // Nếu đã có instance → dùng luôn
+  if (pusherInstance) return pusherInstance;
+
   const {token} = useAuthStore.getState();
-  return new Pusher(PUSHER_KEY, {
+  pusherInstance = new Pusher(PUSHER_KEY, {
     cluster: PUSHER_CLUSTER, // phải đúng với .env backend
     forceTLS: true, // đảm bảo https/wss
     // Laravel mặc định endpoint auth là /broadcasting/auth
-    authEndpoint: `test/broadcasting/auth`,
+    authEndpoint: `http://localhost:8000/broadcasting/auth`,
     auth: {
       headers: {
         // JWT từ login (Bearer token)
@@ -17,4 +22,14 @@ export const createPusherClient = () => {
       },
     },
   });
+
+  return pusherInstance;
+};
+
+// Xoá sạch Pusher khi logout
+export const disconnectPusher = () => {
+  if (pusherInstance) {
+    pusherInstance.disconnect();
+    pusherInstance = null;
+  }
 };

@@ -31,7 +31,7 @@ export default function ChatBox({ patientId, role }: ChatBoxProps) {
 
         return () => {
             pusher.unsubscribe(channelName);
-            pusher.disconnect();
+            // pusher.disconnect();
         };
     }, [patientId]);
 
@@ -49,10 +49,10 @@ export default function ChatBox({ patientId, role }: ChatBoxProps) {
         }
 
         // Optimistic update
-        setMessages((prev) => [
-            ...prev,
-            { patientId, senderType: role, message: trimmed },
-        ]);
+        // setMessages((prev) => [
+        //     ...prev,
+        //     { patientId, senderType: role, message: trimmed },
+        // ]);
         setInput("");
     };
 

@@ -14,14 +14,19 @@ export default function PatientStatus() {
     if (!patientId) return;
 
     const pusher = createPusherClient();
-    const channel = pusher.subscribe(`patient-${patientId}`);
+    const channel = pusher.subscribe(`private-chat.${patientId}`);
 
     channel.bind('status-update', (data: { content: string }) => {
       setMessage(data.content);
     });
 
+    // Nhận tin nhắn chat từ bác sĩ
+    channel.bind("chat-message", (data: {content: string}) => {
+      console.log("Patient received chat:", data);
+    });
+
     return () => {
-      pusher.unsubscribe(`patient-${patientId}`);
+      pusher.unsubscribe(`private-chat.${patientId}`);
       pusher.disconnect();
     };
   }, [patientId]);
