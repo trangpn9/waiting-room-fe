@@ -1,4 +1,5 @@
 REACT_APP_API_BASE_URL=http://localhost:8000/api
+REACT_APP_BASE_URL=http://localhost:8000
 # VITE_PUSHER_KEY=your_pusher_key
 # VITE_PUSHER_CLUSTER=your_cluster
 REACT_APP_PUSHER_KEY=4f38f02e2b4557a4f733
