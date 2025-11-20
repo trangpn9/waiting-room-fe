@@ -60,7 +60,7 @@ export default function Login() {
   };
 
   return (
-    <div className="container mt-5" style={{ maxWidth: 400 }}>
+    <div className="container mt-5 text-center" style={{ maxWidth: 400 }}>
       <h2 className="mb-4">Đăng nhập</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="mb-3">
