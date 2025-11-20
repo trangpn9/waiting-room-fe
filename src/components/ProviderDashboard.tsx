@@ -57,8 +57,10 @@ export default function ProviderDashboard() {
   return (
     <div className="p-3">
       <h4>Provider Dashboard</h4>
-      <button className="btn btn-outline-secondary me-2" onClick={() => setSortType('name')}>Sort by Name</button>
-      <button className="btn btn-outline-secondary" onClick={() => setSortType('time')}>Sort by Time</button>
+      <div className="mb-3">
+        <button className="btn btn-outline-secondary me-2" onClick={() => setSortType('name')}>Sort by Name</button>
+        <button className="btn btn-outline-secondary" onClick={() => setSortType('time')}>Sort by Time</button>
+      </div>
 
       <ul className="list-group">
         {sorted.map((p) => (

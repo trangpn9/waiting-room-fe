@@ -34,9 +34,11 @@ export default function PatientStatus() {
   };
 
   return (
-    <div className="p-3">
+    <div className="p-3 col-8">
       <h4>Status: {message}</h4>
-      <button onClick={exitRoom} className="btn btn-danger mt-2">Exit Waiting Room</button>
+      <div className="d-grid gap-2 col-6 mx-auto">
+        <button onClick={exitRoom} className="btn btn-danger mt-2">Exit Waiting Room</button>
+      </div>
     </div>
   );
 }

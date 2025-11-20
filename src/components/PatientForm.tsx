@@ -15,11 +15,13 @@ export default function PatientForm() {
   };
 
   return (
-    <div className="p-3">
+    <div className="p-3 col-8">
       <h4>Enter Waiting Room</h4>
       <input placeholder="Name" onChange={(e) => setName(e.target.value)} className="form-control mb-2" />
       <input placeholder="Reason" onChange={(e) => setReason(e.target.value)} className="form-control mb-2" />
-      <button onClick={handleJoin} className="btn btn-primary">Join</button>
+      <div className="d-grid gap-2 col-6 mx-auto">
+        <button onClick={handleJoin} className="btn btn-primary">Join</button>
+      </div>
     </div>
   );
 }
