@@ -32,7 +32,7 @@ export const useRegister = () => {
 export const useGetMe = () => {
   return useQuery({
     queryKey: ["me"],
-    queryFn: () => api.get("/me").then(res => res.data),
+    queryFn: () => api.get("/v1/auth/me").then(res => res.data.data),
     enabled: !!useAuthStore.getState().token,
   });
 };

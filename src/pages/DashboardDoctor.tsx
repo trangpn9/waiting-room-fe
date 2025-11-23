@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import ProviderDashboard from "../components/ProviderDashboard";
+import { useGetMe } from "../hooks/useAuth";
 import { useAuthStore } from "./../store/authStore";
 
 export default function DashboardDoctor() {
+  const { data: me, isLoading } = useGetMe();
   const {logout} = useAuthStore();
+
+  if (isLoading) return <p>Loading...</p>;
+
  
   return (
     <main>
@@ -104,7 +110,7 @@ export default function DashboardDoctor() {
         </div>
       </header>
       <div className="container mt-5 text-center">
-        <h2>Bảng điều khiển Bác sĩ</h2>
+        <h2>Bác sĩ: {me?.name}</h2>
         <p>Chào mừng bạn đến với dashboard của bác sĩ.</p>
 
         <ProviderDashboard/>

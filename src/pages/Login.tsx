@@ -14,7 +14,7 @@ const schema = yup.object({
 type LoginForm = yup.InferType<typeof schema>;
 
 export default function Login() {
-  const { token, role } = useAuthStore();
+  const { token, role, logout } = useAuthStore();
   const loginMutation = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +40,9 @@ export default function Login() {
     try {
       const res = await loginMutation.mutateAsync(data);
       const token = res.data.access_token;
+      // clear all session
+      logout();
+
       // Lưu token vào Zustand store
       useAuthStore.getState().login(token);
 

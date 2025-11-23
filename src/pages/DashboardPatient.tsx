@@ -3,8 +3,10 @@ import { useAuthStore } from "./../store/authStore";
 import { usePatientStore } from "../store/usePatientStore";
 import PatientStatus from "../components/PatientStatus";
 import PatientForm from "../components/PatientForm";
+import { useGetMe } from "../hooks/useAuth";
 
 export default function DashboardPatient() {
+  const { data: me, isLoading } = useGetMe();
   const { logout } = useAuthStore();
   const setPatientId = usePatientStore((state) => state.setPatientId);
   const patientId = usePatientStore((state) => state.patientId);
@@ -13,6 +15,8 @@ export default function DashboardPatient() {
     const saved = sessionStorage.getItem("patientId");
     if (saved) setPatientId(saved);
   }, []);
+
+  if (isLoading) return <p>Loading...</p>;
 
   return (
     <main>
@@ -115,7 +119,7 @@ export default function DashboardPatient() {
       </header>
 
       <div className="container mt-5 text-center">
-        <h2>Bảng điều khiển Bệnh nhân</h2>
+        <h2>Bệnh nhân: {me?.name}</h2>
         <p>Chào mừng bạn đến với dashboard của bệnh nhân.</p>
         <div className="row justify-content-md-center">
           {patientId ? <PatientStatus /> : <PatientForm />}
