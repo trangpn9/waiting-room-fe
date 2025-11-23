@@ -11,6 +11,11 @@ type PatientIdType = {
     patientId: string;
 }
 
+type ChatPayload = {
+    patientId: string;
+    message: string;
+};
+
 export const useGetPatients = () => {
     return useQuery({
         queryKey: ["list"],
@@ -34,5 +39,17 @@ export const useExitPatient = () => {
 export const useCallPatient = () => {
     return useMutation<AxiosResponse<any>, Error, PatientIdType>({
         mutationFn: (data) => api.post("v1/doctor/call", data)
+    });
+};
+
+export const useDoctorChat = () => {
+    return useMutation<AxiosResponse<any>, Error, ChatPayload>({
+        mutationFn: (data) => api.post("v1/doctor/chat", data)
+    });
+};
+
+export const usePatientChat = () => {
+    return useMutation<AxiosResponse<any>, Error, ChatPayload>({
+        mutationFn: (data) => api.post("v1/patient/chat", data)
     });
 };

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { jwtDecode } from "jwt-decode";
+import { disconnectPusher } from "../hooks/usePusher";
 
 interface AuthState {
   token: string | null;
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token, role: decoded.role });
   },
   logout: () => {
+    disconnectPusher();
     localStorage.removeItem("token");
     set({ token: null, role: null });
   },
