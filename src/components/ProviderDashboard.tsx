@@ -43,7 +43,7 @@ export default function ProviderDashboard() {
 
     return () => {
       pusher.unsubscribe("waiting-room");
-      pusher.disconnect();
+      // pusher.disconnect();
     };
   }, []);
 

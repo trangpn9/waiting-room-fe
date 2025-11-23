@@ -21,13 +21,13 @@ export default function PatientStatus() {
     });
 
     // Nhận tin nhắn chat từ bác sĩ
-    channel.bind("chat-message", (data: {content: string}) => {
-      console.log("Patient received chat:", data);
-    });
+    // channel.bind("chat-message", (data: {content: string}) => {
+    //   console.log("Patient received chat:", data);
+    // });
 
     return () => {
       pusher.unsubscribe(`private-chat.${patientId}`);
-      pusher.disconnect();
+      // pusher.disconnect();
     };
   }, [patientId]);
 

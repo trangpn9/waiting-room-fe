@@ -25,13 +25,16 @@ export default function ChatBox({ patientId, role }: ChatBoxProps) {
         const channelName = `private-chat.${patientId}`;
         const channel = pusher.subscribe(channelName);
 
-        channel.bind("chat-message", (data: ChatMessage) => {
+
+        const handler = (data: ChatMessage) => {
             setMessages((prev) => [...prev, data]);
-        });
+        };
+
+        channel.bind("chat-message", handler);
 
         return () => {
+            channel.unbind("chat-message", handler);
             pusher.unsubscribe(channelName);
-            // pusher.disconnect();
         };
     }, [patientId]);
 
